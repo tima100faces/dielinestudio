@@ -1,0 +1,19 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+env/
+
+# Editor / OS
+.DS_Store
+*.swp
+*~
+
+# Generated previews & client reference files — kept OUT of the public repo
+samples/
+!samples/.gitkeep
+
+# Local secrets / env
+.env
