@@ -67,10 +67,18 @@ def render_pdf(geom, margin=15.0, title="dieline") -> bytes:
     stroke_arcs(CUT, CUT_RGB, LW_CUT, None)
 
     # INFO texts
-    c.setDash([], 0); c.setFillColorRGB(*INFO_RGB)
+    TXT_RGB = {CUT: CUT_RGB, CREASE: CREASE_RGB, INFO: INFO_RGB, SAFE: SAFE_RGB}
+    c.setDash([], 0)
     for t in geom.texts:
         c.setFont("Helvetica", t.size)
-        c.drawString(X(t.x), Y(t.y), t.s)
+        c.setFillColorRGB(*TXT_RGB.get(t.layer, INFO_RGB))
+        if t.rotation:                       # reportlab is y-up native: angle direct
+            c.saveState()
+            c.translate(X(t.x), Y(t.y)); c.rotate(t.rotation)
+            c.drawString(0, 0, t.s)
+            c.restoreState()
+        else:
+            c.drawString(X(t.x), Y(t.y), t.s)
 
     c.showPage(); c.save()
     return buf.getvalue()

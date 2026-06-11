@@ -17,8 +17,7 @@ def _build_pizza(p):
 def _build_wicket(p):
     return wicket(width=p["width"], body=p["body"], wicket=p["wicket"],
                   tab=p["tab"], inset_side=p["inset_side"],
-                  inset_top=p["inset_top"], inset_bottom=p["inset_bottom"],
-                  dims=p["dims"])
+                  inset_height=p["inset_height"], dims=p["dims"])
 
 
 # param: name, label, min, max, step, default. type defaults to float;
@@ -44,10 +43,9 @@ REGISTRY = {
             {"name": "body", "label": "Body", "min": 100, "max": 900, "step": 1, "default": 420},
             {"name": "wicket", "label": "Wicket", "min": 20, "max": 200, "step": 1, "default": 60},
             {"name": "tab", "label": "Tab", "min": 10, "max": 150, "step": 1, "default": 40},
-            {"name": "inset_side", "label": "Inset · sides", "min": 0, "max": 60, "step": 1, "default": 10, "advanced": True},
-            {"name": "inset_top", "label": "Inset · top", "min": 0, "max": 80, "step": 1, "default": 20, "advanced": True},
-            {"name": "inset_bottom", "label": "Inset · bottom", "min": 0, "max": 80, "step": 1, "default": 20, "advanced": True},
-            {"name": "dims", "label": "Show dimensions", "type": "bool", "default": False, "advanced": True},
+            {"name": "inset_side", "label": "Inset · sides", "min": 0, "max": 60, "step": 1, "default": 10},
+            {"name": "inset_height", "label": "Inset · top/bottom", "min": 0, "max": 80, "step": 1, "default": 20},
+            {"name": "dims", "label": "Show dimensions", "type": "bool", "default": False},
         ],
     },
 }

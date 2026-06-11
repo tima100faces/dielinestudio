@@ -41,6 +41,12 @@ def render_pdf(geom, margin=15.0, title="dieline") -> bytes:
             shp.commit()
 
     for t in geom.texts:
-        page.insert_text((X(t.x), Y(t.y)), t.s, fontsize=t.size,
-                         color=COL[INFO], oc=ocg[INFO])
+        pivot = fitz.Point(X(t.x), Y(t.y))
+        kw = dict(fontsize=t.size, color=COL[t.layer], oc=ocg[t.layer])
+        if t.rotation:
+            # geometry rotation is CCW y-up; page space is y-down. Empirically
+            # +rotation reads bottom-to-top, upright (see docs/wicket_dims_preview).
+            m = fitz.Matrix(1, 1); m.prerotate(t.rotation)
+            kw["morph"] = (pivot, m)
+        page.insert_text(pivot, t.s, **kw)
     return doc.tobytes()
