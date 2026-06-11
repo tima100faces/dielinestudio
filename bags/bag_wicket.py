@@ -4,9 +4,9 @@ Thin-material bag (film / paper): there is no board thickness, no remap, no
 reference geometry. The flat blank is a stack of full-width rectangles laid out
 bottom -> top along Y:
 
-    tab  ->  body  ->  wicket  ->  wicket  ->  body
+    tab  ->  body  ->  gusset  ->  gusset  ->  body
 
-Each section is its own closed CUT rectangle. Over the body+wicket block (NOT
+Each section is its own closed CUT rectangle. Over the body+gusset block (NOT
 the tab) sits a single SAFE-layer print/safe-area frame, inset from the edges.
 Optional INFO dimension lines (dims=True). Units: mm, y-up, English-only.
 
@@ -46,12 +46,12 @@ def _dim_h(g, y, x0, x1, label):
     g.text((x0 + x1) / 2.0 - tlen / 2.0, y + 2.0, label, size=_LAB, layer=_DIM)
 
 
-def wicket(width=240.0, body=420.0, wicket=60.0, tab=40.0,
+def wicket(width=240.0, body=420.0, gusset=60.0, tab=40.0,
            inset_side=10.0, inset_height=20.0, dims=False) -> Geometry:
     """Flat wicket-bag blank. Returns a Geometry (mm, y-up).
 
-    Sections bottom->top: tab, body, wicket, wicket, body. Total height =
-    tab + body + 2*wicket + body. The SAFE frame covers the body+wicket block
+    Sections bottom->top: tab, body, gusset, gusset, body. Total height =
+    tab + body + 2*gusset + body. The SAFE frame covers the body+gusset block
     only (above the tab), inset by inset_side at the sides and inset_height at
     both top and bottom.
     """
@@ -59,17 +59,17 @@ def wicket(width=240.0, body=420.0, wicket=60.0, tab=40.0,
 
     # --- section boundaries along Y (cumulative, bottom -> top) ----------
     y_tab = tab                          # tab / body joint
-    y_b1 = y_tab + body                  # body / wicket joint
-    y_w1 = y_b1 + wicket                 # wicket / wicket joint
-    y_w2 = y_w1 + wicket                 # wicket / body joint
-    H = y_w2 + body                      # top edge = total height
+    y_b1 = y_tab + body                  # body / gusset joint
+    y_g1 = y_b1 + gusset                 # gusset / gusset joint
+    y_g2 = y_g1 + gusset                 # gusset / body joint
+    H = y_g2 + body                      # top edge = total height
 
     # --- each section is its own closed CUT rectangle --------------------
     g.rect(0.0, 0.0, width, tab, CUT)        # tab
     g.rect(0.0, y_tab, width, body, CUT)     # body (lower)
-    g.rect(0.0, y_b1, width, wicket, CUT)    # wicket (lower)
-    g.rect(0.0, y_w1, width, wicket, CUT)    # wicket (upper)
-    g.rect(0.0, y_w2, width, body, CUT)      # body (upper)
+    g.rect(0.0, y_b1, width, gusset, CUT)    # gusset (lower)
+    g.rect(0.0, y_g1, width, gusset, CUT)    # gusset (upper)
+    g.rect(0.0, y_g2, width, body, CUT)      # body (upper)
 
     # --- SAFE / print-area frame over the body+wicket block (not the tab) -
     sx = inset_side
@@ -83,8 +83,8 @@ def wicket(width=240.0, body=420.0, wicket=60.0, tab=40.0,
         near = -12.0                         # per-section column (left of bag)
         far = -34.0                          # overall-height column (further left)
         # near column: one dim per section, bottom -> top
-        for y0, y1 in ((0.0, y_tab), (y_tab, y_b1), (y_b1, y_w1),
-                       (y_w1, y_w2), (y_w2, H)):
+        for y0, y1 in ((0.0, y_tab), (y_tab, y_b1), (y_b1, y_g1),
+                       (y_g1, y_g2), (y_g2, H)):
             _dim_v(g, near, y0, y1, f"{y1 - y0:g} mm")
         # far column: overall height
         _dim_v(g, far, 0.0, H, f"{H:g} mm")
@@ -95,9 +95,9 @@ def wicket(width=240.0, body=420.0, wicket=60.0, tab=40.0,
 
 
 if __name__ == "__main__":
-    for (w, b, wk, tb) in [(240, 420, 60, 40), (300, 500, 80, 50)]:
-        g = wicket(w, b, wk, tb)
+    for (w, b, gus, tb) in [(240, 420, 60, 40), (300, 500, 80, 50)]:
+        g = wicket(w, b, gus, tb)
         bb = tuple(round(v, 1) for v in g.bbox())
-        print(f"{w}/{b}/{wk}/{tb}: bbox {bb} "
+        print(f"{w}/{b}/{gus}/{tb}: bbox {bb} "
               f"size {round(bb[2]-bb[0],1)}x{round(bb[3]-bb[1],1)} "
               f"cutSeg {len(g.segs)}")
