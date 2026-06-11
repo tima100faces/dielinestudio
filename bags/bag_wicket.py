@@ -17,6 +17,8 @@ from core.primitives import Geometry, CUT, SAFE
 
 TICK = 3.5            # dimension tick ("засечка") length, mm
 _LAB = 5.0           # dimension label height, mm (~reference 240x420_60_40.dxf)
+_PANEL = 10.0        # panel-label height, mm
+_LEGEND = 4.5        # legend text height, mm
 _CH = 0.55           # rough glyph-width factor (× size) for centring labels
 
 # Dimensions are drawn on the CUT layer so they carry the technical red pen
@@ -44,6 +46,20 @@ def _dim_h(g, y, x0, x1, label):
     g.line(x1, y - TICK / 2, x1, y + TICK / 2, _DIM)
     tlen = len(label) * _LAB * _CH
     g.text((x0 + x1) / 2.0 - tlen / 2.0, y + 2.0, label, size=_LAB, layer=_DIM)
+
+
+def _panel(g, cx, cy, text, width, size=_PANEL, rot=0.0):
+    """Centred panel label at section centre (cx, cy). rot=0 upright,
+    rot=180 upside-down (anchor mirrored through itself so it stays centred).
+    Auto-shrinks so the text never exceeds the panel width."""
+    size = min(size, width * 0.9 / max(1, len(text) * _CH))
+    w = len(text) * size * _CH
+    cap = size * 0.7
+    if rot == 180.0:
+        ax, ay = cx + w / 2.0, cy + cap / 2.0
+    else:
+        ax, ay = cx - w / 2.0, cy - cap / 2.0
+    g.text(ax, ay, text, size=size, rotation=rot, layer=_DIM)
 
 
 def wicket(width=240.0, body=420.0, gusset=60.0, tab=40.0,
@@ -90,6 +106,20 @@ def wicket(width=240.0, body=420.0, gusset=60.0, tab=40.0,
         _dim_v(g, far, 0.0, H, f"{H:g} mm")
         # horizontal: width across the top
         _dim_h(g, H + 12.0, 0.0, width, f"{width:g} mm")
+
+        # --- panel labels (large, centred on their sections) ----------
+        cx = width / 2.0
+        _panel(g, cx, (y_g2 + H) / 2.0, "FRONT", width)               # body (upper)
+        _panel(g, cx, (y_tab + y_b1) / 2.0, "BACK", width, rot=180.0)  # body (lower), flipped
+        # bottom gusset: two stacked lines centred on the gusset block
+        cyg = (y_b1 + y_g2) / 2.0
+        ls = _PANEL * 1.15
+        _panel(g, cx, cyg + ls / 2.0, "BOTTOM", width)
+        _panel(g, cx, cyg - ls / 2.0, "GUSSET", width)
+
+        # --- legend under the blank (below the tab) -------------------
+        g.text(0.0, -10.0, "blue dashed = printable area, do not exceed",
+               size=_LEGEND, layer=_DIM)
 
     return g
 
