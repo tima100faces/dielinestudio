@@ -13,36 +13,47 @@ Optional INFO dimension lines (dims=True). Units: mm, y-up, English-only.
 This module deliberately shares NOTHING with boxes/pizza_led.py (no remap, no
 windows, no double-crease, no slot_shift) — it is pure parametric construction.
 """
-from core.primitives import Geometry, CUT, SAFE, INFO
+from core.primitives import Geometry, CUT, SAFE
 
 TICK = 3.5            # dimension tick ("засечка") length, mm
-_AVG_CH = 1.7         # rough character width for centring labels, mm
+_LAB = 5.0           # dimension label height, mm (~reference 240x420_60_40.dxf)
+_CH = 0.55           # rough glyph-width factor (× size) for centring labels
+
+# Dimensions are drawn on the CUT layer so they carry the technical red pen
+# (same colour as the dieline geometry); they stay numeric, English-only.
+_DIM = CUT
 
 
 def _dim_v(g, x, y0, y1, label):
-    """Vertical dimension line with end ticks + label to the right."""
-    g.line(x, y0, x, y1, INFO)
-    g.line(x - TICK / 2, y0, x + TICK / 2, y0, INFO)
-    g.line(x - TICK / 2, y1, x + TICK / 2, y1, INFO)
-    g.text(x + TICK, (y0 + y1) / 2.0 - 1.5, label, size=7.0)
+    """Vertical dimension: line at x from y0..y1, horizontal end ticks, and a
+    VERTICAL (90deg) number-only label centred on the line, sitting to its left."""
+    g.line(x, y0, x, y1, _DIM)
+    g.line(x - TICK / 2, y0, x + TICK / 2, y0, _DIM)
+    g.line(x - TICK / 2, y1, x + TICK / 2, y1, _DIM)
+    tlen = len(label) * _LAB * _CH
+    ymid = (y0 + y1) / 2.0
+    # rotated 90deg CCW: glyphs read bottom->top, height extends left of anchor x
+    g.text(x - 2.0, ymid - tlen / 2.0, label, size=_LAB, rotation=90.0, layer=_DIM)
 
 
 def _dim_h(g, y, x0, x1, label):
-    """Horizontal dimension line with end ticks + centred label below."""
-    g.line(x0, y, x1, y, INFO)
-    g.line(x0, y - TICK / 2, x0, y + TICK / 2, INFO)
-    g.line(x1, y - TICK / 2, x1, y + TICK / 2, INFO)
-    g.text((x0 + x1) / 2.0 - len(label) * _AVG_CH, y - 6.0, label, size=7.0)
+    """Horizontal dimension: line at y from x0..x1, vertical end ticks, and a
+    HORIZONTAL number-only label centred above the line."""
+    g.line(x0, y, x1, y, _DIM)
+    g.line(x0, y - TICK / 2, x0, y + TICK / 2, _DIM)
+    g.line(x1, y - TICK / 2, x1, y + TICK / 2, _DIM)
+    tlen = len(label) * _LAB * _CH
+    g.text((x0 + x1) / 2.0 - tlen / 2.0, y + 2.0, label, size=_LAB, layer=_DIM)
 
 
 def wicket(width=240.0, body=420.0, wicket=60.0, tab=40.0,
-           inset_side=10.0, inset_top=20.0, inset_bottom=20.0,
-           dims=False) -> Geometry:
+           inset_side=10.0, inset_height=20.0, dims=False) -> Geometry:
     """Flat wicket-bag blank. Returns a Geometry (mm, y-up).
 
     Sections bottom->top: tab, body, wicket, wicket, body. Total height =
     tab + body + 2*wicket + body. The SAFE frame covers the body+wicket block
-    only (above the tab), inset by inset_side / inset_top / inset_bottom.
+    only (above the tab), inset by inset_side at the sides and inset_height at
+    both top and bottom.
     """
     g = Geometry()
 
@@ -63,19 +74,22 @@ def wicket(width=240.0, body=420.0, wicket=60.0, tab=40.0,
     # --- SAFE / print-area frame over the body+wicket block (not the tab) -
     sx = inset_side
     sw = width - 2 * inset_side
-    sy = y_tab + inset_bottom                # bottom sits above the tab joint
-    sh = (H - inset_top) - sy                # top sits below the top edge
+    sy = y_tab + inset_height                # bottom sits above the tab joint
+    sh = (H - inset_height) - sy             # top sits below the top edge
     g.rect(sx, sy, sw, sh, SAFE)
 
-    # --- optional dimensions (INFO) --------------------------------------
+    # --- optional dimensions (INFO), number-only labels ------------------
     if dims:
-        rx = width + 12.0                    # per-section dims column
-        ox = width + 34.0                    # overall-height column
-        _dim_v(g, rx, 0.0, y_tab, f"Tab {tab:g} mm")
-        _dim_v(g, rx, y_tab, y_b1, f"Body {body:g} mm")
-        _dim_v(g, rx, y_b1, y_w1, f"Wicket {wicket:g} mm")
-        _dim_v(g, ox, 0.0, H, f"Height {H:g} mm")
-        _dim_h(g, -12.0, 0.0, width, f"Width {width:g} mm")
+        near = -12.0                         # per-section column (left of bag)
+        far = -34.0                          # overall-height column (further left)
+        # near column: one dim per section, bottom -> top
+        for y0, y1 in ((0.0, y_tab), (y_tab, y_b1), (y_b1, y_w1),
+                       (y_w1, y_w2), (y_w2, H)):
+            _dim_v(g, near, y0, y1, f"{y1 - y0:g} mm")
+        # far column: overall height
+        _dim_v(g, far, 0.0, H, f"{H:g} mm")
+        # horizontal: width across the top
+        _dim_h(g, H + 12.0, 0.0, width, f"{width:g} mm")
 
     return g
 

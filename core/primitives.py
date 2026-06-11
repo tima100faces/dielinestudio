@@ -43,6 +43,7 @@ class Text:
     x: float; y: float; s: str
     size: float = 8.0
     layer: str = INFO
+    rotation: float = 0.0         # degrees, CCW, y-up (math convention); 0 = horizontal
 
 
 @dataclass
@@ -58,8 +59,8 @@ class Geometry:
     def arc(self, cx, cy, r, a0, a1, layer=CUT):
         self.arcs.append(Arc(cx, cy, r, a0, a1, layer)); return self
 
-    def text(self, x, y, s, size=8.0):
-        self.texts.append(Text(x, y, s, size)); return self
+    def text(self, x, y, s, size=8.0, rotation=0.0, layer=INFO):
+        self.texts.append(Text(x, y, s, size, layer, rotation=rotation)); return self
 
     def polyline(self, pts, layer=CUT, close=False):
         for a, b in zip(pts, pts[1:]):

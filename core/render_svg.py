@@ -25,10 +25,14 @@ def render_svg(geom, margin=15.0, mode="preview", bg="#0d1117") -> str:
         d = "M " + " L ".join(f"{X(px)} {Y(py)}" for px, py in pts)
         layers[a.layer].append(f'<path d="{d}" fill="none"/>')
 
-    texts = "".join(
-        f'<text x="{X(t.x)}" y="{Y(t.y)}" font-size="{t.size}" '
-        f'font-family="Helvetica,Arial,sans-serif" fill="{COL[INFO]}">{escape(t.s)}</text>'
-        for t in geom.texts)
+    def _txt(t):
+        tx, ty = X(t.x), Y(t.y)
+        # geometry rotation is CCW y-up; SVG y is flipped -> negate the angle so
+        # the label reads bottom-to-top, upright.
+        rot = f' transform="rotate({-t.rotation:g} {tx} {ty})"' if t.rotation else ""
+        return (f'<text x="{tx}" y="{ty}" font-size="{t.size}"{rot} '
+                f'font-family="Helvetica,Arial,sans-serif" fill="{COL[t.layer]}">{escape(t.s)}</text>')
+    texts = "".join(_txt(t) for t in geom.texts)
 
     bgrect = f'<rect width="{w:.1f}" height="{h:.1f}" fill="{bg}"/>' if mode == "preview" else ""
     size = ('preserveAspectRatio="xMidYMid meet"' if mode == "preview"

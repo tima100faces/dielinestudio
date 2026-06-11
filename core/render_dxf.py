@@ -25,8 +25,10 @@ def render_dxf(geom, title="dieline") -> bytes:
         msp.add_arc((a.cx, a.cy), a.r, min(a.a0, a.a1), max(a.a0, a.a1),
                     dxfattribs={"layer": LAYER[a.layer]})
     for t in geom.texts:
-        msp.add_text(t.s, height=t.size,
-                     dxfattribs={"layer": "INFO"}).set_placement((t.x, t.y))
+        attribs = {"layer": LAYER.get(t.layer, "INFO")}
+        if t.rotation:                       # DXF rotation is CCW degrees, y-up
+            attribs["rotation"] = t.rotation
+        msp.add_text(t.s, height=t.size, dxfattribs=attribs).set_placement((t.x, t.y))
 
     buf = io.StringIO()
     doc.write(buf)
