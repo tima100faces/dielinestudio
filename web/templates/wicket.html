@@ -60,22 +60,22 @@
     <div class="grp"><label>Width</label>
       <div class="field"><input type="range" id="width_r" min="80" max="600" step="1" value="240">
         <span class="vbox"><input type="number" id="width" value="240"><span>mm</span></span></div></div>
-    <div class="grp"><label>Body</label>
-      <div class="field"><input type="range" id="body_r" min="100" max="900" step="1" value="420">
-        <span class="vbox"><input type="number" id="body" value="420"><span>mm</span></span></div></div>
+    <div class="grp"><label>Length</label>
+      <div class="field"><input type="range" id="length_r" min="100" max="900" step="1" value="420">
+        <span class="vbox"><input type="number" id="length" value="420"><span>mm</span></span></div></div>
     <div class="grp"><label>Gusset</label>
       <div class="field"><input type="range" id="gusset_r" min="20" max="200" step="1" value="60">
         <span class="vbox"><input type="number" id="gusset" value="60"><span>mm</span></span></div></div>
-    <div class="grp"><label>Tab</label>
-      <div class="field"><input type="range" id="tab_r" min="10" max="150" step="1" value="40">
-        <span class="vbox"><input type="number" id="tab" value="40"><span>mm</span></span></div></div>
+    <div class="grp"><label>Lip</label>
+      <div class="field"><input type="range" id="lip_r" min="10" max="150" step="1" value="40">
+        <span class="vbox"><input type="number" id="lip" value="40"><span>mm</span></span></div></div>
 
-    <div class="grp"><label>Inset · sides</label>
-      <div class="field"><input type="range" id="inset_side_r" min="0" max="60" step="1" value="10">
-        <span class="vbox"><input type="number" id="inset_side" value="10"><span>mm</span></span></div></div>
-    <div class="grp"><label>Inset · top/bottom</label>
-      <div class="field"><input type="range" id="inset_height_r" min="0" max="80" step="1" value="20">
-        <span class="vbox"><input type="number" id="inset_height" value="20"><span>mm</span></span></div></div>
+    <div class="grp"><label>Safe area · sides</label>
+      <div class="field"><input type="range" id="safe_side_r" min="0" max="60" step="1" value="10">
+        <span class="vbox"><input type="number" id="safe_side" value="10"><span>mm</span></span></div></div>
+    <div class="grp"><label>Safe area · top/bottom</label>
+      <div class="field"><input type="range" id="safe_height_r" min="0" max="80" step="1" value="20">
+        <span class="vbox"><input type="number" id="safe_height" value="20"><span>mm</span></span></div></div>
     <label class="chk"><input type="checkbox" id="dims"> Show dimensions</label>
 
     <div class="divide"></div>
@@ -93,7 +93,7 @@
 <script>
 "use strict";
 const $=id=>document.getElementById(id);
-const NUM=['width','body','gusset','tab','inset_side','inset_height'];
+const NUM=['width','length','gusset','lip','safe_side','safe_height'];
 function params(){
   const o={type:'wicket'};
   NUM.forEach(id=>o[id]=$(id).value);
@@ -109,7 +109,7 @@ async function render(){
     const svg=$('preview').querySelector('svg');
     if(svg){const vb=svg.getAttribute('viewBox').split(' ');
       $('r-sheet').textContent=Math.round(vb[2])+' × '+Math.round(vb[3])+' mm';}
-    const h=+$('tab').value + +$('body').value + 2*(+$('gusset').value) + +$('body').value;
+    const h=+$('lip').value + +$('length').value + 2*(+$('gusset').value) + +$('length').value;
     $('r-bag').textContent=$('width').value+' × '+h+' mm';
   }catch(e){$('preview').innerHTML='<div style="color:#e51a24;font:13px monospace">'+e+'</div>';}
 }
