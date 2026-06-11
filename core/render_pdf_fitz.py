@@ -2,11 +2,12 @@
 CUT = red solid, CREASE = green dashed, INFO = title block (own layer).
 Units mm; y-up geometry is flipped to PDF space. Returns PDF bytes."""
 import fitz
-from core.primitives import CUT, CREASE, INFO
+from core.primitives import CUT, CREASE, INFO, SAFE
 
 MM = 72.0 / 25.4
-COL = {CUT: (0.92, 0.10, 0.14), CREASE: (0.10, 0.62, 0.30), INFO: (0.12, 0.12, 0.12)}
-LW = {CUT: 0.30, CREASE: 0.30, INFO: 0.20}
+COL = {CUT: (0.92, 0.10, 0.14), CREASE: (0.10, 0.62, 0.30),
+       INFO: (0.12, 0.12, 0.12), SAFE: (0.10, 0.71, 0.84)}
+LW = {CUT: 0.30, CREASE: 0.30, INFO: 0.20, SAFE: 0.30}
 
 
 def render_pdf(geom, margin=15.0, title="dieline") -> bytes:
@@ -21,9 +22,11 @@ def render_pdf(geom, margin=15.0, title="dieline") -> bytes:
     def Y(y): return (maxy - y + margin) * MM   # flip: fitz is y-down
 
     ocg = {lay: doc.add_ocg(name, on=True)
-           for lay, name in ((CUT, "CUT"), (CREASE, "CREASE"), (INFO, "INFO"))}
+           for lay, name in ((CUT, "CUT"), (CREASE, "CREASE"),
+                             (INFO, "INFO"), (SAFE, "SAFE"))}
+    DASH = {CREASE: "[3 2] 0", SAFE: "[4 2.5] 0"}
 
-    for lay in (INFO, CREASE, CUT):              # INFO under, CUT on top
+    for lay in (INFO, SAFE, CREASE, CUT):        # INFO under, CUT on top
         shp = page.new_shape()
         n = 0
         for s in geom.segs:
@@ -34,8 +37,7 @@ def render_pdf(geom, margin=15.0, title="dieline") -> bytes:
                 shp.draw_polyline([(X(px), Y(py)) for px, py in a.sample(2.0)]); n += 1
         if n:
             shp.finish(color=COL[lay], width=LW[lay] * MM,
-                       dashes="[3 2] 0" if lay == CREASE else None,
-                       closePath=False, oc=ocg[lay])
+                       dashes=DASH.get(lay), closePath=False, oc=ocg[lay])
             shp.commit()
 
     for t in geom.texts:

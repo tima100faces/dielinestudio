@@ -3,16 +3,17 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Dieline Studio</title>
+<title>Dieline Studio · Wicket bag</title>
 <style>
   :root{--bg:#0d1117;--panel:#131a24;--panel2:#0f151d;--line:#222c39;--ink:#e8edf4;
-    --muted:#7d8a9c;--cut:#e51a24;--crease:#19a04d;--accent:#3aa0ff;--grid:#172230}
+    --muted:#7d8a9c;--cut:#e51a24;--crease:#19a04d;--safe:#19b6d6;--accent:#3aa0ff;--grid:#172230}
   *{box-sizing:border-box;margin:0;padding:0}
   html,body{height:100%}
   body{background:var(--bg);color:var(--ink);font-family:Inter,"Segoe UI",system-ui,sans-serif;
     display:flex;flex-direction:column;min-height:100%}
   header{padding:14px 22px;border-bottom:1px solid var(--line);display:flex;align-items:baseline;gap:12px;flex-wrap:wrap}
   header h1{font-size:15px;font-weight:650;letter-spacing:.02em}
+  header h1 a{color:inherit;text-decoration:none}
   header .tag{font-size:11px;color:var(--muted);letter-spacing:.12em;text-transform:uppercase;border:1px solid var(--line);padding:3px 8px;border-radius:4px}
   header .spec{margin-left:auto;font-size:12px;color:var(--muted)}
   header .spec b{color:var(--accent);font-weight:600}
@@ -24,11 +25,15 @@
   .vbox{width:80px;display:flex;align-items:center;gap:3px;background:var(--panel2);border:1px solid var(--line);border-radius:6px;padding:5px 7px}
   .vbox input{width:100%;background:transparent;border:0;color:var(--ink);font-size:13px;text-align:right;outline:none}
   .vbox span{font-size:10px;color:var(--muted)}
-  .txt{width:100%;background:var(--panel2);border:1px solid var(--line);border-radius:6px;padding:8px 9px;color:var(--ink);font-size:13px;outline:none}
-  .txt:focus,.vbox:focus-within{border-color:var(--accent)}
-  .row2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .vbox:focus-within{border-color:var(--accent)}
   .divide{border-top:1px solid var(--line);margin:2px 0}
-  .legend{display:flex;gap:16px;font-size:12px;color:var(--muted)}
+  details.adv{border:1px solid var(--line);border-radius:8px;padding:10px 12px;background:var(--panel2)}
+  details.adv>summary{font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);cursor:pointer;user-select:none;list-style:none}
+  details.adv>summary::-webkit-details-marker{display:none}
+  details.adv>summary::before{content:"▸ ";color:var(--accent)}
+  details.adv[open]>summary::before{content:"▾ "}
+  details.adv .body{display:flex;flex-direction:column;gap:12px;margin-top:12px}
+  .legend{display:flex;gap:16px;font-size:12px;color:var(--muted);flex-wrap:wrap}
   .legend .row{display:flex;align-items:center;gap:8px}
   .legend .sw{width:24px;border-top-width:2px;border-top-style:solid}
   .chk{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--ink);cursor:pointer;user-select:none}
@@ -52,48 +57,63 @@
 </head>
 <body>
 <header>
-  <h1><a href="." style="color:inherit;text-decoration:none">Dieline Studio</a></h1>
-  <span class="tag">Pizza / LED box</span>
-  <span class="spec">output <b>PDF</b> · layers <b>CUT / CREASE / INFO</b> · mm 1:1</span>
+  <h1><a href=".">Dieline Studio</a></h1>
+  <span class="tag">Wicket bag</span>
+  <span class="spec">output <b>PDF</b> / <b>DXF</b> · layers <b>CUT / SAFE / INFO</b> · mm 1:1</span>
 </header>
 <main>
   <aside class="controls">
-    <div class="grp"><label>Width · W</label>
-      <div class="field"><input type="range" id="W_r" min="120" max="650" step="1" value="430">
-        <span class="vbox"><input type="number" id="W" value="430"><span>mm</span></span></div></div>
-    <div class="grp"><label>Depth · D</label>
-      <div class="field"><input type="range" id="D_r" min="120" max="650" step="1" value="260">
-        <span class="vbox"><input type="number" id="D" value="260"><span>mm</span></span></div></div>
-    <div class="grp"><label>Wall height · H</label>
-      <div class="field"><input type="range" id="H_r" min="15" max="120" step="1" value="30">
-        <span class="vbox"><input type="number" id="H" value="30"><span>mm</span></span></div></div>
-    <div class="grp"><label>Board thickness · t</label>
-      <div class="field"><input type="range" id="t_r" min="0.3" max="7" step="0.1" value="1.5">
-        <span class="vbox"><input type="number" id="t" value="1.5" step="0.1"><span>mm</span></span></div></div>
-    <div class="divide"></div>
-    <label class="chk"><input type="checkbox" id="legend"> Legend / title block</label>
-    <div class="grp"><label>Title block</label>
-      <input class="txt" id="sku" placeholder="SKU / article" value=""></div>
-    <div class="row2">
-      <input class="txt" id="color" placeholder="Color" value="">
-      <span class="vbox" style="width:100%"><span style="color:var(--muted)">&plusmn;</span><input type="number" id="tol" value="5" step="0.5"><span>mm</span></span></div>
+    <div class="grp"><label>Width</label>
+      <div class="field"><input type="range" id="width_r" min="80" max="600" step="1" value="240">
+        <span class="vbox"><input type="number" id="width" value="240"><span>mm</span></span></div></div>
+    <div class="grp"><label>Body</label>
+      <div class="field"><input type="range" id="body_r" min="100" max="900" step="1" value="420">
+        <span class="vbox"><input type="number" id="body" value="420"><span>mm</span></span></div></div>
+    <div class="grp"><label>Wicket</label>
+      <div class="field"><input type="range" id="wicket_r" min="20" max="200" step="1" value="60">
+        <span class="vbox"><input type="number" id="wicket" value="60"><span>mm</span></span></div></div>
+    <div class="grp"><label>Tab</label>
+      <div class="field"><input type="range" id="tab_r" min="10" max="150" step="1" value="40">
+        <span class="vbox"><input type="number" id="tab" value="40"><span>mm</span></span></div></div>
+
+    <details class="adv">
+      <summary>Advanced</summary>
+      <div class="body">
+        <div class="grp"><label>Inset · sides</label>
+          <div class="field"><input type="range" id="inset_side_r" min="0" max="60" step="1" value="10">
+            <span class="vbox"><input type="number" id="inset_side" value="10"><span>mm</span></span></div></div>
+        <div class="grp"><label>Inset · top</label>
+          <div class="field"><input type="range" id="inset_top_r" min="0" max="80" step="1" value="20">
+            <span class="vbox"><input type="number" id="inset_top" value="20"><span>mm</span></span></div></div>
+        <div class="grp"><label>Inset · bottom</label>
+          <div class="field"><input type="range" id="inset_bottom_r" min="0" max="80" step="1" value="20">
+            <span class="vbox"><input type="number" id="inset_bottom" value="20"><span>mm</span></span></div></div>
+        <label class="chk"><input type="checkbox" id="dims"> Show dimensions</label>
+      </div>
+    </details>
+
     <div class="divide"></div>
     <div class="legend">
       <div class="row"><span class="sw" style="border-color:var(--cut)"></span> Cut</div>
-      <div class="row"><span class="sw" style="border-color:var(--crease);border-top-style:dashed"></span> Crease</div></div>
+      <div class="row"><span class="sw" style="border-color:var(--safe);border-top-style:dashed"></span> Safe area</div></div>
     <div class="downloads"><button id="dl">Download PDF</button>
       <button class="alt" id="dlx">Download DXF (layers)</button></div>
   </aside>
   <section class="stage">
     <div id="preview"></div>
-    <div class="readout"><span>Inner: <b id="r-inner">—</b></span><span>Sheet: <b id="r-sheet">—</b></span></div>
+    <div class="readout"><span>Bag: <b id="r-bag">—</b></span><span>Sheet: <b id="r-sheet">—</b></span></div>
   </section>
 </main>
 <script>
 "use strict";
 const $=id=>document.getElementById(id);
-const params=()=>new URLSearchParams({type:'pizza_led',W:$('W').value,D:$('D').value,H:$('H').value,t:$('t').value,
-  sku:$('sku').value,color:$('color').value,tol:$('tol').value,legend:$('legend').checked});
+const NUM=['width','body','wicket','tab','inset_side','inset_top','inset_bottom'];
+function params(){
+  const o={type:'wicket'};
+  NUM.forEach(id=>o[id]=$(id).value);
+  o.dims=$('dims').checked;
+  return new URLSearchParams(o);
+}
 let timer=null;
 async function render(){
   const qs=params().toString();
@@ -103,17 +123,17 @@ async function render(){
     const svg=$('preview').querySelector('svg');
     if(svg){const vb=svg.getAttribute('viewBox').split(' ');
       $('r-sheet').textContent=Math.round(vb[2])+' × '+Math.round(vb[3])+' mm';}
-    $('r-inner').textContent=$('W').value+' × '+$('D').value+' × '+$('H').value+' mm';
+    const h=+$('tab').value + +$('body').value + 2*(+$('wicket').value) + +$('body').value;
+    $('r-bag').textContent=$('width').value+' × '+h+' mm';
   }catch(e){$('preview').innerHTML='<div style="color:#e51a24;font:13px monospace">'+e+'</div>';}
 }
 function debounce(){clearTimeout(timer);timer=setTimeout(render,120);}
-['W','D','H','t'].forEach(id=>{
+NUM.forEach(id=>{
   const n=$(id),r=$(id+'_r');
   n.addEventListener('input',()=>{r.value=n.value;debounce();});
   r.addEventListener('input',()=>{n.value=r.value;debounce();});
 });
-['sku','color','tol'].forEach(id=>$(id).addEventListener('input',debounce));
-$('legend').addEventListener('change',render);
+$('dims').addEventListener('change',render);
 $('dl').onclick=()=>{window.location='download.pdf?'+params().toString();};
 $('dlx').onclick=()=>{window.location='download.dxf?'+params().toString();};
 render();

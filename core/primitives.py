@@ -11,6 +11,7 @@ from dataclasses import dataclass, field
 CUT = "cut"
 CREASE = "crease"
 INFO = "info"
+SAFE = "safe"        # safe / print area boundary (dashed); never a physical edge
 
 
 @dataclass

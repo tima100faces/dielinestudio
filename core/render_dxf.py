@@ -1,11 +1,12 @@
 """Render Geometry to DXF with real LAYERS (CUT / CREASE / INFO) and TRUE arcs.
 Illustrator imports DXF layers as Illustrator layers (PDF OCG it does not).
-CUT = ACI 1 (red), CREASE = ACI 3 (green) dashed, INFO = ACI 8. Units: mm."""
+CUT = ACI 1 (red), CREASE = ACI 3 (green) dashed, INFO = ACI 8,
+SAFE = ACI 5 (blue) dashed. Units: mm."""
 import io
 import ezdxf
-from core.primitives import CUT, CREASE, INFO
+from core.primitives import CUT, CREASE, INFO, SAFE
 
-LAYER = {CUT: "CUT", CREASE: "CREASE", INFO: "INFO"}
+LAYER = {CUT: "CUT", CREASE: "CREASE", INFO: "INFO", SAFE: "SAFE"}
 
 
 def render_dxf(geom, title="dieline") -> bytes:
@@ -14,6 +15,7 @@ def render_dxf(geom, title="dieline") -> bytes:
     doc.layers.add("CUT", color=1)
     doc.layers.add("CREASE", color=3, linetype="DASHED")
     doc.layers.add("INFO", color=8)
+    doc.layers.add("SAFE", color=5, linetype="DASHED")
     msp = doc.modelspace()
 
     for s in geom.segs:

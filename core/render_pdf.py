@@ -7,14 +7,16 @@ Units mm, 1:1, y-up (native PDF). Returns PDF bytes.
 from io import BytesIO
 from reportlab.pdfgen import canvas
 from reportlab.lib.units import mm
-from core.primitives import CUT, CREASE, INFO
+from core.primitives import CUT, CREASE, INFO, SAFE
 
 CUT_RGB = (0.92, 0.10, 0.14)      # red
 CREASE_RGB = (0.10, 0.62, 0.30)   # green
 INFO_RGB = (0.10, 0.10, 0.10)     # near-black
+SAFE_RGB = (0.10, 0.71, 0.84)     # cyan / blue (safe area)
 LW_CUT = 0.30
 LW_CREASE = 0.30
 LW_INFO = 0.20
+LW_SAFE = 0.30
 
 
 def render_pdf(geom, margin=15.0, title="dieline") -> bytes:
@@ -54,9 +56,11 @@ def render_pdf(geom, margin=15.0, title="dieline") -> bytes:
                     startAng=a.a0, extent=(a.a1 - a.a0))
             c.drawPath(p, stroke=1, fill=0)
 
-    # INFO first (under), then CREASE, then CUT on top
+    # INFO first (under), then SAFE, CREASE, then CUT on top
     stroke_segs(INFO, INFO_RGB, LW_INFO, None)
     stroke_arcs(INFO, INFO_RGB, LW_INFO, None)
+    stroke_segs(SAFE, SAFE_RGB, LW_SAFE, [4, 2.5])
+    stroke_arcs(SAFE, SAFE_RGB, LW_SAFE, [4, 2.5])
     stroke_segs(CREASE, CREASE_RGB, LW_CREASE, [2, 1.5])
     stroke_arcs(CREASE, CREASE_RGB, LW_CREASE, [2, 1.5])
     stroke_segs(CUT, CUT_RGB, LW_CUT, None)
