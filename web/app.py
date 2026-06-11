@@ -10,6 +10,7 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from boxes.pizza_led import pizza_led
 from core.render_svg import render_svg
 from core.render_pdf_fitz import render_pdf          # PDF with OCG layers CUT/CREASE/INFO
+from core.render_dxf import render_dxf               # DXF with real layers (for Illustrator/CAM)
 from core.titleblock import title_block
 from core.primitives import Geometry
 
@@ -44,6 +45,17 @@ def download(W: float = 430, D: float = 260, H: float = 30, t: float = 1.5,
     pdf = render_pdf(g, title=f"{box}_{int(W)}x{int(D)}x{int(H)}")
     fn = f"{box}_{int(W)}x{int(D)}x{int(H)}.pdf"
     return Response(pdf, media_type="application/pdf",
+                    headers={"Content-Disposition": f'attachment; filename="{fn}"'})
+
+
+@app.get("/download.dxf")
+def download_dxf(W: float = 430, D: float = 260, H: float = 30, t: float = 1.5,
+                 sku: str = "", color: str = "", tol: float = 5.0,
+                 box: str = "pizza_led", legend: bool = False):
+    g = build(W, D, H, t, sku, color, tol, box, legend)
+    dxf = render_dxf(g, title=f"{box}_{int(W)}x{int(D)}x{int(H)}")
+    fn = f"{box}_{int(W)}x{int(D)}x{int(H)}.dxf"
+    return Response(dxf, media_type="application/dxf",
                     headers={"Content-Disposition": f'attachment; filename="{fn}"'})
 
 

@@ -36,6 +36,8 @@
   .downloads{display:flex;flex-direction:column;gap:8px;margin-top:auto}
   .downloads button{font:inherit;font-size:13px;font-weight:600;color:var(--bg);background:var(--accent);border:0;border-radius:7px;padding:10px;cursor:pointer}
   .downloads button:hover{filter:brightness(1.1)}
+  .downloads button.alt{background:transparent;color:var(--ink);border:1px solid var(--line)}
+  .downloads button.alt:hover{border-color:var(--accent);color:var(--accent);filter:none}
   .stage{position:relative;padding:22px;background:
       linear-gradient(var(--grid) 1px,transparent 1px) 0 0/22px 22px,
       linear-gradient(90deg,var(--grid) 1px,transparent 1px) 0 0/22px 22px,
@@ -79,7 +81,8 @@
     <div class="legend">
       <div class="row"><span class="sw" style="border-color:var(--cut)"></span> Cut</div>
       <div class="row"><span class="sw" style="border-color:var(--crease);border-top-style:dashed"></span> Crease</div></div>
-    <div class="downloads"><button id="dl">Download PDF</button></div>
+    <div class="downloads"><button id="dl">Download PDF</button>
+      <button class="alt" id="dlx">Download DXF (layers)</button></div>
   </aside>
   <section class="stage">
     <div id="preview"></div>
@@ -112,6 +115,7 @@ function debounce(){clearTimeout(timer);timer=setTimeout(render,120);}
 ['sku','color','tol'].forEach(id=>$(id).addEventListener('input',debounce));
 $('legend').addEventListener('change',render);
 $('dl').onclick=()=>{window.location='download.pdf?'+params().toString();};
+$('dlx').onclick=()=>{window.location='download.dxf?'+params().toString();};
 render();
 </script>
 </body>

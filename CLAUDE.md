@@ -80,3 +80,6 @@ The core insight after several failures:
   **layers CUT / CREASE / INFO**; UI and title block are **English only**.
 - The title block / legend is a toggle in the sidebar, **OFF by default** (a clean
   dieline for production);  adds it.
+- **DXF download** (, ezdxf) gives REAL layers CUT/CREASE/INFO
+  (ACI 1/3/8) + audit-clean. Use DXF for Illustrator/CAM layers — Illustrator does
+  NOT promote PDF OCG to Layers-panel layers (only groups by them).
