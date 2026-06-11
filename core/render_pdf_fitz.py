@@ -42,7 +42,8 @@ def render_pdf(geom, margin=15.0, title="dieline") -> bytes:
 
     for t in geom.texts:
         pivot = fitz.Point(X(t.x), Y(t.y))
-        kw = dict(fontsize=t.size, color=COL[t.layer], oc=ocg[t.layer])
+        # t.size is in mm; fitz fontsize is in points -> scale by MM
+        kw = dict(fontsize=t.size * MM, color=COL[t.layer], oc=ocg[t.layer])
         if t.rotation:
             # geometry rotation is CCW y-up; page space is y-down. Empirically
             # +rotation reads bottom-to-top, upright (see docs/wicket_dims_preview).

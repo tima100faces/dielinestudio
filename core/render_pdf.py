@@ -70,7 +70,7 @@ def render_pdf(geom, margin=15.0, title="dieline") -> bytes:
     TXT_RGB = {CUT: CUT_RGB, CREASE: CREASE_RGB, INFO: INFO_RGB, SAFE: SAFE_RGB}
     c.setDash([], 0)
     for t in geom.texts:
-        c.setFont("Helvetica", t.size)
+        c.setFont("Helvetica", t.size * mm)      # t.size is mm; reportlab wants points
         c.setFillColorRGB(*TXT_RGB.get(t.layer, INFO_RGB))
         if t.rotation:                       # reportlab is y-up native: angle direct
             c.saveState()

@@ -37,11 +37,8 @@ def _resolve_type(query) -> str:
 
 
 def _slug(type_id, params) -> str:
-    if type_id == "pizza_led":
-        return f"pizza_led_{int(params['W'])}x{int(params['D'])}x{int(params['H'])}"
-    if type_id == "wicket":
-        return f"wicket_{int(params['width'])}x{int(params['body'])}"
-    return type_id
+    fn = REGISTRY[type_id].get("filename")
+    return fn(params) if fn else type_id
 
 
 def build(type_id, params, query=None) -> Geometry:
