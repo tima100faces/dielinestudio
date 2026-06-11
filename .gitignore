@@ -17,3 +17,6 @@ samples/
 
 # Local secrets / env
 .env
+
+# Personal / local notes (Synology-synced, not for the public repo)
+LOCAL-SETUP.md

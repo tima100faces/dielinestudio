@@ -1,3 +1,9 @@
+> **Historical** — the original project brief, kept for context and the future
+> box-type roadmap (mailer FEFCO 0427, tray 0426, food box). The CURRENT
+> architecture and rules live in [`../CLAUDE.md`](../CLAUDE.md) and
+> [`ARCHITECTURE.md`](ARCHITECTURE.md); this brief's architecture/stack details are
+> partly superseded (we use a parametric DXF-template remap, not one-assembler-per-type).
+
 # Dieline Generator — бриф для старта проекта (Claude Code)
 
 > Документ для старта. Геометрию строим **с нуля и корректно** по определению каждого
