@@ -31,6 +31,8 @@
   .legend{display:flex;gap:16px;font-size:12px;color:var(--muted)}
   .legend .row{display:flex;align-items:center;gap:8px}
   .legend .sw{width:24px;border-top-width:2px;border-top-style:solid}
+  .chk{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--ink);cursor:pointer;user-select:none}
+  .chk input{width:16px;height:16px;accent-color:var(--accent);cursor:pointer}
   .downloads{display:flex;flex-direction:column;gap:8px;margin-top:auto}
   .downloads button{font:inherit;font-size:13px;font-weight:600;color:var(--bg);background:var(--accent);border:0;border-radius:7px;padding:10px;cursor:pointer}
   .downloads button:hover{filter:brightness(1.1)}
@@ -67,6 +69,7 @@
       <div class="field"><input type="range" id="t_r" min="0.3" max="7" step="0.1" value="1.5">
         <span class="vbox"><input type="number" id="t" value="1.5" step="0.1"><span>mm</span></span></div></div>
     <div class="divide"></div>
+    <label class="chk"><input type="checkbox" id="legend"> Legend / title block</label>
     <div class="grp"><label>Title block</label>
       <input class="txt" id="sku" placeholder="SKU / article" value=""></div>
     <div class="row2">
@@ -87,7 +90,7 @@
 "use strict";
 const $=id=>document.getElementById(id);
 const params=()=>new URLSearchParams({W:$('W').value,D:$('D').value,H:$('H').value,t:$('t').value,
-  sku:$('sku').value,color:$('color').value,tol:$('tol').value});
+  sku:$('sku').value,color:$('color').value,tol:$('tol').value,legend:$('legend').checked});
 let timer=null;
 async function render(){
   const qs=params().toString();
@@ -107,6 +110,7 @@ function debounce(){clearTimeout(timer);timer=setTimeout(render,120);}
   r.addEventListener('input',()=>{n.value=r.value;debounce();});
 });
 ['sku','color','tol'].forEach(id=>$(id).addEventListener('input',debounce));
+$('legend').addEventListener('change',render);
 $('dl').onclick=()=>{window.location='download.pdf?'+params().toString();};
 render();
 </script>

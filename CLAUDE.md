@@ -76,4 +76,7 @@ The core insight after several failures:
 ## 7. Deploy
 - systemd `die.service` → `uvicorn web.app:app --host 127.0.0.1 --port 8011`
   (`ROOT_PATH=/die`); nginx `location /die/`. After editing code: `systemctl restart die`.
-- Output is **PDF only**; UI and title block are **English only**.
+- Output is **PDF only** (PyMuPDF, ) with real OCG
+  **layers CUT / CREASE / INFO**; UI and title block are **English only**.
+- The title block / legend is a toggle in the sidebar, **OFF by default** (a clean
+  dieline for production);  adds it.
