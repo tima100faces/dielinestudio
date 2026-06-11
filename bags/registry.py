@@ -15,9 +15,9 @@ def _build_pizza(p):
 
 
 def _build_wicket(p):
-    return wicket(width=p["width"], body=p["body"], gusset=p["gusset"],
-                  tab=p["tab"], inset_side=p["inset_side"],
-                  inset_height=p["inset_height"], dims=p["dims"])
+    return wicket(width=p["width"], length=p["length"], gusset=p["gusset"],
+                  lip=p["lip"], safe_side=p["safe_side"],
+                  safe_height=p["safe_height"], dims=p["dims"])
 
 
 def _name_pizza(p):
@@ -25,8 +25,8 @@ def _name_pizza(p):
 
 
 def _name_wicket(p):
-    # width x body + gusset + tab, numbers as entered (gusset single, not doubled)
-    return f"wicket_{p['width']:g}x{p['body']:g}+{p['gusset']:g}+{p['tab']:g}"
+    # width x length + gusset + lip, numbers as entered (gusset single, not doubled)
+    return f"wicket_{p['width']:g}x{p['length']:g}+{p['gusset']:g}+{p['lip']:g}"
 
 
 # param: name, label, min, max, step, default. type defaults to float;
@@ -51,11 +51,11 @@ REGISTRY = {
         "filename": _name_wicket,
         "params": [
             {"name": "width", "label": "Width", "min": 80, "max": 600, "step": 1, "default": 240},
-            {"name": "body", "label": "Body", "min": 100, "max": 900, "step": 1, "default": 420},
+            {"name": "length", "label": "Length", "min": 100, "max": 900, "step": 1, "default": 420},
             {"name": "gusset", "label": "Gusset", "min": 20, "max": 200, "step": 1, "default": 60},
-            {"name": "tab", "label": "Tab", "min": 10, "max": 150, "step": 1, "default": 40},
-            {"name": "inset_side", "label": "Inset · sides", "min": 0, "max": 60, "step": 1, "default": 10},
-            {"name": "inset_height", "label": "Inset · top/bottom", "min": 0, "max": 80, "step": 1, "default": 20},
+            {"name": "lip", "label": "Lip", "min": 10, "max": 150, "step": 1, "default": 40},
+            {"name": "safe_side", "label": "Safe area · sides", "min": 0, "max": 60, "step": 1, "default": 10},
+            {"name": "safe_height", "label": "Safe area · top/bottom", "min": 0, "max": 80, "step": 1, "default": 20},
             {"name": "dims", "label": "Show dimensions", "type": "bool", "default": False},
         ],
     },

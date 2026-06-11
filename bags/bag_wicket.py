@@ -4,10 +4,10 @@ Thin-material bag (film / paper): there is no board thickness, no remap, no
 reference geometry. The flat blank is a stack of full-width rectangles laid out
 bottom -> top along Y:
 
-    tab  ->  body  ->  gusset  ->  gusset  ->  body
+    lip  ->  length  ->  gusset  ->  gusset  ->  length
 
-Each section is its own closed CUT rectangle. Over the body+gusset block (NOT
-the tab) sits a single SAFE-layer print/safe-area frame, inset from the edges.
+Each section is its own closed CUT rectangle. Over the length+gusset block (NOT
+the lip) sits a single SAFE-layer print/safe-area frame, inset from the edges.
 Optional INFO dimension lines (dims=True). Units: mm, y-up, English-only.
 
 This module deliberately shares NOTHING with boxes/pizza_led.py (no remap, no
@@ -62,36 +62,36 @@ def _panel(g, cx, cy, text, width, size=_PANEL, rot=0.0):
     g.text(ax, ay, text, size=size, rotation=rot, layer=_DIM)
 
 
-def wicket(width=240.0, body=420.0, gusset=60.0, tab=40.0,
-           inset_side=10.0, inset_height=20.0, dims=False) -> Geometry:
+def wicket(width=240.0, length=420.0, gusset=60.0, lip=40.0,
+           safe_side=10.0, safe_height=20.0, dims=False) -> Geometry:
     """Flat wicket-bag blank. Returns a Geometry (mm, y-up).
 
-    Sections bottom->top: tab, body, gusset, gusset, body. Total height =
-    tab + body + 2*gusset + body. The SAFE frame covers the body+gusset block
-    only (above the tab), inset by inset_side at the sides and inset_height at
-    both top and bottom.
+    Sections bottom->top: lip, length, gusset, gusset, length. Total height =
+    lip + length + 2*gusset + length. The SAFE frame covers the length+gusset
+    block only (above the lip), inset by safe_side at the sides and safe_height
+    at both top and bottom.
     """
     g = Geometry()
 
     # --- section boundaries along Y (cumulative, bottom -> top) ----------
-    y_tab = tab                          # tab / body joint
-    y_b1 = y_tab + body                  # body / gusset joint
-    y_g1 = y_b1 + gusset                 # gusset / gusset joint
-    y_g2 = y_g1 + gusset                 # gusset / body joint
-    H = y_g2 + body                      # top edge = total height
+    y_lip = lip                          # lip / length joint
+    y_l1 = y_lip + length                # length / gusset joint
+    y_g1 = y_l1 + gusset                 # gusset / gusset joint
+    y_g2 = y_g1 + gusset                 # gusset / length joint
+    H = y_g2 + length                    # top edge = total height
 
     # --- each section is its own closed CUT rectangle --------------------
-    g.rect(0.0, 0.0, width, tab, CUT)        # tab
-    g.rect(0.0, y_tab, width, body, CUT)     # body (lower)
-    g.rect(0.0, y_b1, width, gusset, CUT)    # gusset (lower)
+    g.rect(0.0, 0.0, width, lip, CUT)        # lip
+    g.rect(0.0, y_lip, width, length, CUT)   # length (lower)
+    g.rect(0.0, y_l1, width, gusset, CUT)    # gusset (lower)
     g.rect(0.0, y_g1, width, gusset, CUT)    # gusset (upper)
-    g.rect(0.0, y_g2, width, body, CUT)      # body (upper)
+    g.rect(0.0, y_g2, width, length, CUT)    # length (upper)
 
-    # --- SAFE / print-area frame over the body+wicket block (not the tab) -
-    sx = inset_side
-    sw = width - 2 * inset_side
-    sy = y_tab + inset_height                # bottom sits above the tab joint
-    sh = (H - inset_height) - sy             # top sits below the top edge
+    # --- SAFE / print-area frame over the length+gusset block (not the lip) -
+    sx = safe_side
+    sw = width - 2 * safe_side
+    sy = y_lip + safe_height                 # bottom sits above the lip joint
+    sh = (H - safe_height) - sy              # top sits below the top edge
     g.rect(sx, sy, sw, sh, SAFE)
 
     # --- optional dimensions (INFO), number-only labels ------------------
@@ -99,7 +99,7 @@ def wicket(width=240.0, body=420.0, gusset=60.0, tab=40.0,
         near = -12.0                         # per-section column (left of bag)
         far = -34.0                          # overall-height column (further left)
         # near column: one dim per section, bottom -> top
-        for y0, y1 in ((0.0, y_tab), (y_tab, y_b1), (y_b1, y_g1),
+        for y0, y1 in ((0.0, y_lip), (y_lip, y_l1), (y_l1, y_g1),
                        (y_g1, y_g2), (y_g2, H)):
             _dim_v(g, near, y0, y1, f"{y1 - y0:g} mm")
         # far column: overall height
@@ -109,15 +109,15 @@ def wicket(width=240.0, body=420.0, gusset=60.0, tab=40.0,
 
         # --- panel labels (large, centred on their sections) ----------
         cx = width / 2.0
-        _panel(g, cx, (y_g2 + H) / 2.0, "FRONT", width)               # body (upper)
-        _panel(g, cx, (y_tab + y_b1) / 2.0, "BACK", width, rot=180.0)  # body (lower), flipped
+        _panel(g, cx, (y_g2 + H) / 2.0, "FRONT", width)                # length (upper)
+        _panel(g, cx, (y_lip + y_l1) / 2.0, "BACK", width, rot=180.0)  # length (lower), flipped
         # bottom gusset: two stacked lines centred on the gusset block
-        cyg = (y_b1 + y_g2) / 2.0
+        cyg = (y_l1 + y_g2) / 2.0
         ls = _PANEL * 1.15
         _panel(g, cx, cyg + ls / 2.0, "BOTTOM", width)
         _panel(g, cx, cyg - ls / 2.0, "GUSSET", width)
 
-        # --- legend under the blank (below the tab) -------------------
+        # --- legend under the blank (below the lip) -------------------
         g.text(0.0, -10.0, "blue dashed = printable area, do not exceed",
                size=_LEGEND, layer=_DIM)
 
@@ -125,9 +125,9 @@ def wicket(width=240.0, body=420.0, gusset=60.0, tab=40.0,
 
 
 if __name__ == "__main__":
-    for (w, b, gus, tb) in [(240, 420, 60, 40), (300, 500, 80, 50)]:
-        g = wicket(w, b, gus, tb)
+    for (w, length, gus, lip) in [(240, 420, 60, 40), (300, 500, 80, 50)]:
+        g = wicket(w, length, gus, lip)
         bb = tuple(round(v, 1) for v in g.bbox())
-        print(f"{w}/{b}/{gus}/{tb}: bbox {bb} "
+        print(f"{w}/{length}/{gus}/{lip}: bbox {bb} "
               f"size {round(bb[2]-bb[0],1)}x{round(bb[3]-bb[1],1)} "
               f"cutSeg {len(g.segs)}")
