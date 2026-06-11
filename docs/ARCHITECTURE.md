@@ -4,10 +4,36 @@ Guidance for safely extending this dieline generator. Read **all** of it before
 touching geometry — most of these lessons cost real iterations.
 
 ## What this is
-Parametric dieline generator. Current production type **14747**: a book-style
-tray + folding lid (side-by-side blank), reverse-engineered 1:1 from a layered
-production DXF and regenerated at any `W × D × H × t`. Output: vector PDF, layers
-CUT (red) / CREASE (green) / INFO. Served at https://idealabs.co/die/.
+Parametric dieline generator with **two categories**:
+- **Boxes** (`boxes/`) — rigid board, regenerated 1:1 from a layered production DXF
+  by a parametric remap. Current type **14747**: a book-style tray + folding lid
+  (side-by-side blank).
+- **Bags** (`bags/`) — thin-material bags (film / paper) built **by formula from
+  scratch**. Current type **wicket**.
+
+Output: vector **PDF** (PyMuPDF, OCG layers) + **DXF** (ezdxf, real layers), layers
+CUT (red) / CREASE (green) / INFO / SAFE (blue dashed). Served at
+https://idealabs.co/die/.
+
+## Two categories — and why their rules differ
+This is the single most important thing to internalise before editing geometry:
+
+- **Box (`boxes/pizza_led.py`)** — complex **DXF-template remap**, rigid feature
+  **windows**, a **thickness model**, **double-crease**, and it **loads a reference
+  DXF** at runtime. **Everything in sections 1–6 below applies to the box category
+  only.**
+- **Bag (`bags/`, e.g. `bag_wicket.py`)** — geometry is built by a **formula from
+  scratch**. **No thickness, no remap, no reference DXF, no double-crease.** Pure
+  parametric construction (see section 8).
+
+> ⚠️ **Do NOT apply the pizza_led machinery (remap / windows / double-crease /
+> slot_shift) to bags.** They are different worlds. A bag is a stack of plain
+> rectangles computed from its parameters; reaching for the box engine there is
+> always wrong.
+
+---
+
+# BOX category (pizza_led) — sections 1–6
 
 ## 1. Get the box TYPE right
 14747 is a **side-by-side book box**: base (left) + spine/hinge + lid (right).
@@ -66,20 +92,92 @@ The core insight after several failures:
   stops reaching the slot.
 - Panels carry score-to-score: base width `D + 2t`, lid width `D + 4t`.
 
-## 6. Verify EVERY change
+## 6. Verify EVERY box change
 - Overlay output on the reference DXF at the design size (`tools/verify_template.py`,
   `tools/compare_layers.py`). At `430×260×30, t1.5` it must match 1:1.
 - Render and LOOK at what you touched (`tools/region*.py`, `tools/hires.py`).
 - Resize hard (e.g. `820×580`) and change thickness (`t=4`) — that is where
   stretching, connectivity and classification bugs surface.
 
-## 7. Deploy
+---
+
+# BAG category — section 7
+
+## 7. Bag category: wicket (formula-built)
+A wicket bag is **built from a formula**, not a reference. There is no thickness,
+no remap, no windows, no double-crease — just rectangles computed from parameters.
+
+- **Sections, bottom → top:** `lip → length → gusset → gusset → length`.
+  - **Blank height = `lip + 2·length + 2·gusset`**; width = `width`.
+  - Reference: `240 × 420 + 60 + 40` → **240 × 1000 mm**.
+- Each section is a **closed rectangle on the CUT layer** (drawn as rectangles, not
+  loose lines — it keeps the blank easy for a designer to align to).
+- **SAFE frame**: one rectangle on the SAFE layer over the **length+gusset block
+  (NOT the lip)**, inset by `safe_side` (sides) and `safe_height` (top/bottom).
+- **Reference / annotation layer (`dims=True`, "Show dimensions")** — everything
+  below is drawn on **CUT (technical red)** and is hidden when `dims=False` (clean
+  drawing):
+  - **Dimensions**: numbers only (no names). Vertical dims are rotated so they read
+    bottom-to-top; a per-section column plus the overall blank height sit at the
+    left, the width dimension across the top.
+  - **Panel labels**: **FRONT** (upper length panel, upright), **BACK** (lower
+    length panel, `rotation=180` so it reads right once the bag is folded), and
+    **BOTTOM GUSSET** as two centred lines on the gusset block.
+  - **Legend** below the blank: `"blue dashed = printable area, do not exceed"`.
+- **Terminology** (UI label / code parameter): Width / `width`, Length / `length`,
+  Gusset / `gusset`, Lip / `lip`, Safe area · sides / `safe_side`, Safe area ·
+  top/bottom / `safe_height`, Show dimensions / `dims`. (Earlier names were
+  tab→lip, body→length, inset→safe area.)
+- Verify a bag by **rendering the PDF and looking** (and `python -m bags.bag_wicket`
+  reports the blank size). No 1:1 overlay — there is no reference.
+
+---
+
+# Shared core & web — section 8
+
+## 8. Core mechanisms shared by both categories
+- **Four layers: CUT / CREASE / INFO / SAFE.** SAFE was added alongside the
+  original three: a **blue dashed print/safe-area boundary** (never a physical cut
+  or fold). Handled in every renderer (`render_svg`, `render_pdf_fitz`,
+  `render_pdf`, `render_dxf`); in DXF it is a **real layer `SAFE`, ACI 5, dashed**.
+- **`Text.rotation`** (degrees, CCW, y-up) — an **additive** field (default `0`, so
+  all pre-existing text is unchanged). Used for vertical dimension labels and the
+  upside-down BACK label. Sign in the y-flipping renderers differs by convention:
+  **fitz uses `+rotation`, SVG uses `-rotation`** (PyMuPDF `prerotate` vs SVG
+  `rotate`); reportlab and DXF are y-up native so the angle is direct.
+- **Type registry `bags/registry.py`**: `id -> {label, category, build, filename,
+  params}`. The web layer takes the **build function**, **download filename** and
+  **parameter schema** from the registry, so adding a type does not touch the
+  endpoints. `coerce()` turns query strings into typed params.
+- **Two-screen web flow**: `/` = type chooser (`landing.html`), `/box` = box
+  constructor (`index.html`), `/bag` = wicket constructor (`wicket.html`). `app.py`
+  is generic over the `type` parameter (legacy `box=` is still accepted).
+- **Download filenames** come from a per-type `filename` function in the registry:
+  box → `pizza_led_430x260x30`; wicket → `wicket_240x420+60+40` (format
+  `width x length + gusset + lip`, numbers as entered, gusset single).
+- **Text size note:** `Text.size` is in **mm**; PDF renderers scale it to points
+  (`* MM` / `* mm`). DXF height is in mm directly.
+
+## 9. Known issues & roadmap
+- **Wicket legend is drawn red (CUT)** even though it refers to the blue dashed
+  line — cosmetic, worth revisiting.
+- **Label / dimension centring is approximate** — it uses a rough glyph-width
+  factor (`_CH`), not real font metrics.
+- **Roadmap:** the next bag types (t-shirt bag, die-cut handle bag) go through the
+  **same registry / pattern** — add a `bags/<type>.py` builder + a registry entry;
+  no new endpoints.
+
+---
+
+# Deploy — section 10
+
+## 10. Deploy
 - systemd `die.service` → `uvicorn web.app:app --host 127.0.0.1 --port 8011`
   (`ROOT_PATH=/die`); nginx `location /die/`. After editing code: `systemctl restart die`.
-- Output is **PDF only** (PyMuPDF, ) with real OCG
-  **layers CUT / CREASE / INFO**; UI and title block are **English only**.
-- The title block / legend is a toggle in the sidebar, **OFF by default** (a clean
-  dieline for production);  adds it.
-- **DXF download** (, ezdxf) gives REAL layers CUT/CREASE/INFO
-  (ACI 1/3/8) + audit-clean. Use DXF for Illustrator/CAM layers — Illustrator does
+- Output is **PDF** (PyMuPDF, `render_pdf_fitz`) with real OCG
+  **layers CUT / CREASE / INFO / SAFE**; UI and title block are **English only**.
+- The box title block / legend is a toggle in the sidebar, **OFF by default** (a
+  clean dieline for production); `legend=true` adds it.
+- **DXF download** (`render_dxf`, ezdxf) gives REAL layers CUT/CREASE/INFO/SAFE
+  (ACI 1/3/8/5) + audit-clean. Use DXF for Illustrator/CAM layers — Illustrator does
   NOT promote PDF OCG to Layers-panel layers (only groups by them).
